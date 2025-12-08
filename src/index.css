@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  /* We map Tailwind utility classes to these CSS variables */
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-dim: var(--primary-dim);
+
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+/* Light Mode (Default) */
+:root {
+  --bg: #f8fafc; /* Slate 50 */
+  --surface: #ffffff; /* White */
+  --surface-hover: #f1f5f9; /* Slate 100 */
+  --border: #e2e8f0; /* Slate 200 */
+
+  --primary: #059669; /* Emerald 600 (Darker for contrast on light) */
+  --primary-hover: #047857;
+  --primary-dim: rgba(5, 150, 105, 0.1);
+
+  --text-main: #0f172a; /* Slate 900 */
+  --text-muted: #64748b; /* Slate 500 */
+
+  color-scheme: light;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --bg: #0a0a0a;
+  --surface: #121212;
+  --surface-hover: #1e1e1e;
+  --border: rgba(255, 255, 255, 0.1);
+
+  --primary: #10b981; /* Emerald 500 (Brighter for contrast on dark) */
+  --primary-hover: #059669;
+  --primary-dim: rgba(16, 185, 129, 0.1);
+
+  --text-main: #e5e5e5;
+  --text-muted: #9ca3af;
+
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-main);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
