@@ -4,6 +4,10 @@ import {
   ArrowDownLeft,
   Clock,
   AlertTriangle,
+  ExternalLink,
+  CheckCircle2,
+  XCircle,
+  Loader2,
 } from "lucide-react";
 import { useWalletStore } from "../store/useWalletStore";
 import { CHAIN_DISPLAY } from "../services/alchemyService";
@@ -16,6 +20,37 @@ const PRICE_ESTIMATES: Record<string, number> = {
   USDC: 1,
   DAI: 1,
   USDT: 1,
+};
+
+// Helper to determine styles and icon based on status
+const getStatusStyles = (status: string) => {
+  const normalizedStatus = status.toLowerCase();
+
+  switch (normalizedStatus) {
+    case "success":
+    case "confirmed":
+      return {
+        style: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+        icon: <CheckCircle2 className="w-3 h-3" />,
+      };
+    case "pending":
+    case "processing":
+      return {
+        style: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+        icon: <Loader2 className="w-3 h-3 animate-spin" />,
+      };
+    case "failed":
+    case "reverted":
+      return {
+        style: "bg-red-500/10 text-red-500 border-red-500/20",
+        icon: <XCircle className="w-3 h-3" />,
+      };
+    default:
+      return {
+        style: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+        icon: null,
+      };
+  }
 };
 
 export const Dashboard = () => {
@@ -36,14 +71,22 @@ export const Dashboard = () => {
     });
   };
 
+  const getExplorerUrl = (hash: string) => {
+    const baseUrl =
+      selectedChain === "ETH_MAINNET" ? "etherscan.io" : "sepolia.etherscan.io";
+    return `https://${baseUrl}/tx/${hash}`;
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 transition-colors duration-300">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main mb-2">
-          Activity Feed
+        <h1 className="md:text-3xl text-2xl font-bold text-text-main mb-2">
+          Transaction Feed
         </h1>
-        <p className="text-text-muted">Real-time data from Alchemy.</p>
+        <p className="text-text-muted text-sm md:text-base">
+          Real-time data from Alchemy.
+        </p>
       </div>
 
       {/* Chain Selector */}
@@ -54,9 +97,9 @@ export const Dashboard = () => {
             onClick={() => setChain(key)}
             disabled={isLoading}
             className={clsx(
-              "px-4 py-2 rounded-full text-sm font-medium transition-all border cursor-pointer",
+              "md:px-4 px-2 md:py-2 py-1 rounded-full text-xs md:text-sm font-medium transition-all border cursor-pointer shadow-lg",
               selectedChain === key
-                ? "bg-primary-dim border-primary text-primary shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                ? "bg-primary-dim border-primary text-primary "
                 : "bg-surface border-border text-text-muted hover:border-primary/50 hover:text-text-main"
             )}
           >
@@ -93,76 +136,97 @@ export const Dashboard = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {transactions.map((tx) => (
-            <div
-              key={tx.hash}
-              className="group bg-surface hover:bg-surface-hover border border-border rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center shadow-md justify-between gap-4 transition-colors"
-            >
-              <div className="flex items-center gap-4 w-full sm:w-auto">
-                <div
-                  className={clsx(
-                    "p-3 rounded-full shrink-0",
-                    tx.type === "sent"
-                      ? "bg-orange-500/10 text-orange-500"
-                      : "bg-primary-dim text-primary"
-                  )}
-                >
-                  {tx.type === "sent" ? (
-                    <ArrowUpRight className="w-5 h-5" />
-                  ) : (
-                    <ArrowDownLeft className="w-5 h-5" />
-                  )}
+          {transactions.map((tx) => {
+            const statusConfig = getStatusStyles(tx.status);
+
+            return (
+              <div
+                key={tx.hash}
+                className="group bg-surface hover:bg-surface-hover border border-border rounded-xl md:p-4 p-2 flex flex-col sm:flex-row items-start sm:items-center shadow-md justify-between gap-4 transition-colors"
+              >
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <div
+                    className={clsx(
+                      "p-3 rounded-full shrink-0",
+                      tx.type === "sent"
+                        ? "bg-orange-500/10 text-orange-500"
+                        : "bg-primary-dim text-primary"
+                    )}
+                  >
+                    {tx.type === "sent" ? (
+                      <ArrowUpRight className="w-5 h-5" />
+                    ) : (
+                      <ArrowDownLeft className="w-5 h-5" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-text-main truncate text-sm md:text-base">
+                        {tx.type === "sent" ? "Sent" : "Received"} {tx.asset}
+                      </span>
+
+                      {/* Dynamic Status Badge */}
+                      <span
+                        className={clsx(
+                          "text-xs font-medium px-2 py-0.5 rounded-full border flex items-center gap-1 capitalize",
+                          statusConfig.style
+                        )}
+                      >
+                        {statusConfig.icon}
+                        {tx.status}
+                      </span>
+                    </div>
+
+                    <div className="text-xs md:text-sm text-text-muted flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {formatDistanceToNow(new Date(tx.timestamp), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
+
+                      <span className="hidden sm:inline text-border">•</span>
+
+                      <span className="hidden sm:inline font-mono text-xs md:text-sm">
+                        {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
+                      </span>
+
+                      <span className="hidden sm:inline text-border">•</span>
+
+                      <a
+                        href={getExplorerUrl(tx.hash)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-xs md:text-sm text-primary hover:underline hover:text-primary-hover transition-colors flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {tx.hash.slice(0, 6)}...{tx.hash.slice(-4)}
+                        <ExternalLink className="w-3 h-3 opacity-50" />
+                      </a>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-text-main truncate text-sm md:text-base">
-                      {tx.type === "sent" ? "Sent" : "Received"} {tx.asset}
-                    </span>
-                    <a
-                      href={`https://${
-                        selectedChain === "ETH_MAINNET"
-                          ? "etherscan.io"
-                          : "sepolia.etherscan.io"
-                      }/tx/${tx.hash}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs md:text-sm px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 hover:underline"
-                    >
-                      {tx.status}
-                    </a>
-                  </div>
-                  <div className="text-xs md:text-sm text-text-muted flex items-center gap-2 mt-1">
-                    <Clock className="w-3 h-3" />
-                    <span>
-                      {formatDistanceToNow(new Date(tx.timestamp), {
-                        addSuffix: true,
-                      })}
-                    </span>
-                    <span className="hidden sm:inline">•</span>
-                    <span className="hidden sm:inline font-mono text-xs md:text-sm">
-                      {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
-                    </span>
-                  </div>
+                <div className="text-left sm:text-right w-full sm:w-auto pl-14 sm:pl-0 text-xs md:text-sm">
+                  <p
+                    className={clsx(
+                      "md:text-lg text-base font-bold",
+                      tx.type === "sent" ? "text-text-main" : "text-primary"
+                    )}
+                  >
+                    {tx.type === "sent" ? "-" : "+"}
+                    {tx.value.toFixed(4)} {tx.asset}
+                  </p>
+                  <p className="text-xs md:text-sm text-text-muted">
+                    ≈ {getUsdValue(tx.value, tx.asset)}
+                  </p>
                 </div>
               </div>
-
-              <div className="text-left sm:text-right w-full sm:w-auto pl-14 sm:pl-0 text-xs md:text-sm">
-                <p
-                  className={clsx(
-                    "text-lg font-bold",
-                    tx.type === "sent" ? "text-text-main" : "text-primary"
-                  )}
-                >
-                  {tx.type === "sent" ? "-" : "+"}
-                  {tx.value.toFixed(4)} {tx.asset}
-                </p>
-                <p className="text-xs md:text-sm text-text-muted">
-                  ≈ {getUsdValue(tx.value, tx.asset)}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -18,9 +18,10 @@ export const Navbar = () => {
     useWalletStore();
   const { theme, toggleTheme } = useTheme();
 
-  // State for the dropdown and copy feedback
+  // State for the dropdown, copy feedback, and scroll status
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false); // New state for scroll
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -32,6 +33,15 @@ export const Navbar = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Track scroll position to toggle sticky styles
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleCopy = async () => {
@@ -48,7 +58,15 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="h-16 border-b border-border flex items-center justify-between px-6 bg-surface transition-colors duration-300 relative z-50">
+    <nav
+      className={clsx(
+        "sticky top-0 z-50 h-16 flex items-center justify-between px-6 transition-all duration-300 border-b",
+        // Conditional styles based on scroll state
+        isScrolled
+          ? "bg-surface/85 backdrop-blur-md border-border shadow-sm supports-[backdrop-filter]:bg-surface/60"
+          : "bg-surface border-transparent" // Or keep border-border if you want lines always visible
+      )}
+    >
       {/* Logo */}
       <div className="flex items-center gap-2 text-primary font-bold text-sm md:text-xl">
         <div className="p-1.5 bg-primary-dim rounded-lg">
@@ -65,9 +83,9 @@ export const Navbar = () => {
           aria-label="Toggle Theme"
         >
           {theme === "dark" ? (
-            <Sun className="w-5 h-5" />
+            <Sun className="md:w-5 w-4 md:h-5 h-4" />
           ) : (
-            <Moon className="w-5 h-5" />
+            <Moon className="md:w-5 w-4 md:h-5 h-4" />
           )}
         </button>
 
@@ -75,9 +93,9 @@ export const Navbar = () => {
         {!isConnected ? (
           <button
             onClick={connectWallet}
-            className="bg-primary hover:bg-primary-hover text-white dark:text-black font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer text-sm"
+            className="bg-primary hover:bg-primary-hover text-white dark:text-black font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer text-xs md:text-sm"
           >
-            Connect Wallet
+            Connect
           </button>
         ) : (
           <div className="relative" ref={menuRef}>
@@ -92,7 +110,7 @@ export const Navbar = () => {
               )}
             >
               {/* Avatar Gradient Icon */}
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-800 flex items-center justify-center text-white shadow-inner">
+              <div className="md:w-8 w-6 md:h-8 h-6 rounded-lg bg-gradient-to-br from-primary to-emerald-800 flex items-center justify-center text-white shadow-inner">
                 <User className="w-4 h-4" />
               </div>
 
@@ -124,7 +142,7 @@ export const Navbar = () => {
                   </p>
                   <div className="flex items-center justify-between bg-background p-2 rounded-lg border border-border">
                     <span className="font-mono text-sm text-text-main truncate mr-2">
-                      {address}
+                      {address?.slice(0, 6)}...{address?.slice(-6)}
                     </span>
                     <button
                       onClick={handleCopy}

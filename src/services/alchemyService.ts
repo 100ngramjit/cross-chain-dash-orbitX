@@ -32,7 +32,7 @@ export const fetchChainHistory = async (
   chain: Chain
 ): Promise<Transaction[]> => {
   const settings = {
-    apiKey: import.meta.env.ALCHEMY_API_KEY,
+    apiKey: import.meta.env.VITE_ALCHEMY_API_KEY,
     network: CHAIN_SETTINGS[chain],
   };
 
