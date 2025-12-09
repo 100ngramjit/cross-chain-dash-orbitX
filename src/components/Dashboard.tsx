@@ -91,7 +91,7 @@ export const Dashboard = () => {
       {!isConnected && (
         <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-2xl bg-surface/30 shadow-md">
           <p className="text-text-muted mb-3">Connect your wallet to begin.</p>
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-muted text-center">
             Transaction and chain data will appear here once connected.
           </p>
         </div>
