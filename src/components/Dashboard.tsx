@@ -140,7 +140,7 @@ export const Dashboard = () => {
           ) : transactions.length === 0 ? (
             <div className="text-center py-12 text-text-muted bg-surface rounded-xl border border-border">
               No recent transactions found on{" "}
-              {CHAIN_DISPLAY[selectedChain].name}.
+              {CHAIN_DISPLAY[selectedChain]?.name}.
             </div>
           ) : (
             <div className="space-y-3">
